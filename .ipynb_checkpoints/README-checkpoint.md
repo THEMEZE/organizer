@@ -60,7 +60,6 @@ deactivate         # venv
 conda deactivate   # conda
 ```
 
----
 
 ## 📄 Requirements
 
@@ -76,8 +75,6 @@ unstructured[pdf]
 > [!IMPORTANT]
 > Le [pdf] est nécessaire pour analyser les fichiers PDF avec unstructured.
 
----
-
 ## 🚀 Lancement
 ```bash
 streamlit run organize_documents_AI.py
@@ -88,8 +85,6 @@ streamlit run organize_documents_AI.py
 - Visualiser les résultats et corriger manuellement si besoin.
 - Ranger les fichiers dans des dossiers par thème via le bouton "📂 Ranger les fichiers".
 
----
-
 ## 🖼️ Aperçu de l’interface
 
 1. Analyse automatique des documents :
@@ -98,8 +93,6 @@ streamlit run organize_documents_AI.py
 
 > [!WARNING]
 > Les images sont à ajouter dans `docs/` ou remplacer par vos propres captures d’écran.
-
----
 
 ## 🧠 Thèmes cibles par défaut
 
@@ -117,8 +110,6 @@ streamlit run organize_documents_AI.py
 > [!TIP]
 > On peut bien sûr **proposer d’autres thèmes** selon tes besoins.
 
----
-
 ## 🔄 Workflow Exemple
 
 1. Placer les fichiers à analyser dans `./documents` .
@@ -131,7 +122,6 @@ streamlit run organize_documents_AI.py
 5. Corriger manuellement les classifications si nécessaire.
 6. Cliquer sur "**📂 Ranger les fichiers**" pour organiser les documents dans `./sorted`.
 
----
 
 ## 💡 Remarques
 
@@ -140,8 +130,6 @@ streamlit run organize_documents_AI.py
 - On peut créer une interface pour ** trouver tous les fichiers selon le thème** sans forcément les ranger.
 - Les fichiers sont analysés automatiquement, mais tu peux **corriger manuellement la catégorie** si l’IA se trompe.
 - `@st.cache_resource` est utilisé pour charger le **modèle une seule fois**, optimisant les performances, réduisant le temps de traitement.
-
----
 
 ## ⚡ Commandes utiles
 
@@ -157,11 +145,4 @@ pip install -r requirements.txt
 ```bash
 rm results.json
 ```
-
-- ⚙️ Git Mise à jour
-```bash
-git add .
-git commit -m "Mise à jour"
-git push
-```
-
+# organisateur

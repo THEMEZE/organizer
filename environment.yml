@@ -1,0 +1,15 @@
+name: mon_projet_env
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - unstructured[pdf]
+    - transformers==4.51.3
+    - torch
+    - sentencepiece
+    - pandas
+    - streamlit
+    - unstructured
+
