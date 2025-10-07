@@ -4,4 +4,6 @@ torch
 sentencepiece
 streamlit
 pandas
+plotly
+tabulate
 

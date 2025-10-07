@@ -1,10 +1,8 @@
-#!pip install transformers==4.51.3 torch sentencepiece unstructured streamlit pandas
-
-
 import os
 import shutil
 import json
 import pandas as pd
+import plotly.express as px
 
 #import transformers
 #print(transformers.__file__)
@@ -50,12 +48,28 @@ def extract_text(filepath):
 # ======================
 # 🔍 CLASSIFICATION
 # ======================
-def classify_document(filename, text):
+def classify_document(filename, text, threshold=0.3, top_k=5):
     if not text or len(text) < 50:
-        return {"label": "Inconnu", "score": 0.0}
+        return {"categories": {"Inconnu": 0.0}}
 
-    result = classifier(text[:1000], CATEGORIES)
-    return {"label": result["labels"][0], "score": float(result["scores"][0])}
+    # Classification sur les 1000 premiers caractères
+    result = classifier(text[:1000], CATEGORIES, multi_label=True)
+
+    # On récupère les catégories dont la probabilité dépasse le seuil
+    categories = {
+        label: float(score)
+        for label, score in zip(result["labels"], result["scores"])
+        if score >= threshold
+    }
+
+    # Si aucune catégorie ne dépasse le seuil, on garde les top_k
+    if not categories:
+        categories = {
+            label: float(score)
+            for label, score in list(zip(result["labels"], result["scores"]))[:top_k]
+        }
+
+    return {"categories": categories}
 
 # ======================
 # 📦 SAUVEGARDE JSON
@@ -99,10 +113,10 @@ def app():
 
             with st.spinner(f"Analyse de {filename}..."):
                 text = extract_text(filepath)
-                prediction = classify_document(filename, text)
+                threshold = st.slider("Seuil de probabilité minimale", 0.0, 1.0, 0.3, 0.05)
+                prediction = classify_document(filename, text,threshold=threshold)
                 results[filename] = {
-                    "category": prediction["label"],
-                    "confidence": prediction["score"],
+                    "categories": prediction["categories"],
                     "path": filepath,
                 }
 
@@ -111,9 +125,37 @@ def app():
 
     # --- Section visualisation ---
     if results:
-        df = pd.DataFrame.from_dict(results, orient="index")
         st.header("🧩 Résultats du classement")
+        df = pd.DataFrame([
+            {"fichier": f, "catégories": ", ".join([f"{k} ({v:.2f})" for k, v in info["categories"].items()])}
+            for f, info in results.items()
+        ])
         st.dataframe(df)
+
+        # --- Sélection d’un fichier pour visualiser les probabilités ---
+        st.subheader("📊 Visualisation des probabilités")
+        selected_file = st.selectbox("Choisir un fichier :", list(results.keys()))
+
+        if selected_file:
+            cat_data = results[selected_file]["categories"]
+            chart_df = pd.DataFrame({
+                "Catégorie": list(cat_data.keys()),
+                "Probabilité": list(cat_data.values())
+            }).sort_values("Probabilité", ascending=True)
+
+            fig = px.bar(
+                chart_df,
+                x="Probabilité",
+                y="Catégorie",
+                orientation="h",
+                text="Probabilité",
+                range_x=[0, 1],
+                title=f"Probabilités de classification pour : {selected_file}"
+            )
+
+            fig.update_traces(texttemplate='%{text:.2f}', textposition='outside')
+            fig.update_layout(height=400, margin=dict(l=50, r=50, t=50, b=50))
+            st.plotly_chart(fig, use_container_width=True)
 
         # Correction manuelle
         filename = st.selectbox("Choisir un fichier à corriger :", list(results.keys()))
@@ -133,8 +175,11 @@ def app():
         if st.button("📂 Ranger les fichiers"):
             for filename, info in results.items():
                 if os.path.exists(info["path"]):
-                    move_file(info["path"], info["category"])
+                    # Catégorie dominante = celle avec la plus grande probabilité
+                    main_category = max(info["categories"], key=info["categories"].get)
+                    move_file(info["path"], main_category)
             st.success("Tous les fichiers ont été rangés dans leurs dossiers respectifs ✅")
+
 
 # ======================
 # 🚀 LANCEMENT
